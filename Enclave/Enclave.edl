@@ -23,9 +23,6 @@ enclave {
 		public void ecall_seize_core(size_t cbit);
 		public void ecall_empty();
 		public void ecall_empty_ocall();
-		public int ecall_rsa_sign_init(size_t key_size_in_bit);
-		public int ecall_rsa_sign_do(size_t count);
-		public int ecall_rsa_sign_destroy();
 		public void ecall_loop_for_cycles();
 	};
 };

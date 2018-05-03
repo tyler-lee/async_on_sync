@@ -167,7 +167,7 @@ endif
 endif
 
 
-.PHONY: all run lhr_sgx_sdk test
+.PHONY: all run async_on_sync
 
 ifeq ($(Build_Mode), HW_RELEASE)
 #all: .config_$(Build_Mode)_$(SGX_ARCH) $(App_Name) $(Enclave_Name)
@@ -202,7 +202,7 @@ endif
 
 lhr_sgx_sdk:
 	$(MAKE) -C ../linux-sgx sdk_install_pkg
-	@echo "no\n${PWD}\n" | ./linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin
+	@echo "no\n${PWD}\n" | ../linux-sgx/linux/installer/bin/sgx_linux_x64_sdk_*.bin
 
 
 async_on_sync: async_on_sync.c

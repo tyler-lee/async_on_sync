@@ -306,5 +306,5 @@ void lhr_measurement() {
 	//cout << "There are "<< CORES_PER_CPU << " cores, and CORES_MASK is " << CORES_MASK << endl;
 	//cout << get_nprocs_conf() << get_nprocs() << endl << sysconf(_SC_NPROCESSORS_CONF) << sysconf(_SC_NPROCESSORS_ONLN) << endl;
 	//measurement_empty_enclave();
-	//measurement_internal_thread();
+	measurement_internal_thread();
 }

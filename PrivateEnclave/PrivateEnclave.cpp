@@ -4,7 +4,6 @@
 
 #include "PrivateEnclave.h"
 #include "PrivateEnclave_t.h"  /* print_string */
-#include "../Include/user_types.h"
 #include "sgx_trts.h"
 
 /*

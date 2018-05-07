@@ -235,7 +235,6 @@ int SGX_CDECL main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
-
     /* Initialize the enclave */
     if(initialize_enclave(PRIVATE_TOKEN_FILENAME, PRIVATE_ENCLAVE_FILENAME, &global_private_eid) < 0){
         printf("Enter a character before exit ...\n");
@@ -249,7 +248,6 @@ int SGX_CDECL main(int argc, char *argv[])
     }
 
 
-	system("clear");
 	sgx_status_t ret = SGX_ERROR_UNEXPECTED;
 
 	ret = aos_setkey(global_private_eid);

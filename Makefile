@@ -146,7 +146,7 @@ PrivateEnclave_Cpp_Objects := $(PrivateEnclave_Cpp_Files:.cpp=.o)
 
 PrivateEnclave_Name := private_enclave.so
 Signed_PrivateEnclave_Name := private_enclave.signed.so
-PrivateEnclave_Config_File := PrivateEnclave/PrivateEnclave.config.xml
+PrivateEnclave_Config_File := Common/Enclave.config.xml
 
 
 
@@ -193,7 +193,7 @@ PublicEnclave_Cpp_Objects := $(PublicEnclave_Cpp_Files:.cpp=.o)
 
 PublicEnclave_Name := public_enclave.so
 Signed_PublicEnclave_Name := public_enclave.signed.so
-PublicEnclave_Config_File := PublicEnclave/PublicEnclave.config.xml
+PublicEnclave_Config_File := Common/Enclave.config.xml
 
 ###################
 
@@ -309,7 +309,7 @@ $(PrivateEnclave_Name): PrivateEnclave/PrivateEnclave_t.o $(PrivateEnclave_Cpp_O
 	@echo "LINK =>  $@"
 
 $(Signed_PrivateEnclave_Name): $(PrivateEnclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key PrivateEnclave/PrivateEnclave_private.pem -enclave $(PrivateEnclave_Name) -out $@ -config $(PrivateEnclave_Config_File)
+	@$(SGX_ENCLAVE_SIGNER) sign -key Common/Enclave_private.pem -enclave $(PrivateEnclave_Name) -out $@ -config $(PrivateEnclave_Config_File)
 	@echo "SIGN =>  $@"
 
 
@@ -333,7 +333,7 @@ $(PublicEnclave_Name): PublicEnclave/PublicEnclave_t.o $(PublicEnclave_Cpp_Objec
 	@echo "LINK =>  $@"
 
 $(Signed_PublicEnclave_Name): $(PublicEnclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key PublicEnclave/PublicEnclave_private.pem -enclave $(PublicEnclave_Name) -out $@ -config $(PublicEnclave_Config_File)
+	@$(SGX_ENCLAVE_SIGNER) sign -key Common/Enclave_private.pem -enclave $(PublicEnclave_Name) -out $@ -config $(PublicEnclave_Config_File)
 	@echo "SIGN =>  $@"
 
 

@@ -11,7 +11,10 @@ Extensions (Intel(R) SGX) SDK:
 How to Build/Execute the Sample Code
 ------------------------------------
 1. Install Intel(R) SGX PSW for Linux* OS
-	Use sgxsdk in current directory and make sure that $SGX_SDK is correct.
+	To make and install SGX SDK:
+		$ make install_sgxsdk
+	This will install SGX SDK in current directory: $PWD/sgxsdk.
+	Note: make sure that $SGX_SDK is correct.
 2. Build the project with the prepared Makefile:
     a. Hardware Mode, Debug build:
         $ make

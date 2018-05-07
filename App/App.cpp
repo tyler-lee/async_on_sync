@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
 # include <unistd.h>
 # include <pwd.h>
 # define MAX_PATH FILENAME_MAX
@@ -41,6 +40,7 @@
 #include "sgx_urts.h"
 #include "App.h"
 #include "PrivateEnclave_u.h"
+#include "PublicEnclave_u.h"
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_private_eid = 0;
@@ -248,7 +248,19 @@ int SGX_CDECL main(int argc, char *argv[])
         return -1;
     }
 
-	lhr_measurement();
+
+	system("clear");
+	sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+
+	ret = aos_setkey(global_private_eid);
+	if (ret != SGX_SUCCESS) abort();
+
+	ret = aos_verify(global_public_eid);
+	if (ret != SGX_SUCCESS) abort();
+
+	ret = aos_encrypt(global_public_eid);
+	if (ret != SGX_SUCCESS) abort();
+
 
     /* Destroy the enclave */
     sgx_destroy_enclave(global_private_eid);

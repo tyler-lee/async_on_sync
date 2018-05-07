@@ -11,7 +11,7 @@
 using namespace std;
 
 #include "App.h"
-#include "Enclave_u.h"
+#include "PrivateEnclave_u.h"
 
 #include "../Include/user_types.h"
 

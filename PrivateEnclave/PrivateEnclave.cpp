@@ -2,8 +2,8 @@
 #include <stdio.h>      /* vsnprintf */
 #include <string.h>	//memcpy
 
-#include "Enclave.h"
-#include "Enclave_t.h"  /* print_string */
+#include "PrivateEnclave.h"
+#include "PrivateEnclave_t.h"  /* print_string */
 #include "../Include/user_types.h"
 #include "sgx_trts.h"
 

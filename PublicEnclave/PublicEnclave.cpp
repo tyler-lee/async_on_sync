@@ -26,3 +26,7 @@ void aos_encrypt() {
 	return;
 }
 
+void aos_verify() {
+	ocall_print_string("in enclave: aos_verify\n");
+	return;
+}

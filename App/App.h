@@ -49,10 +49,13 @@
 # define FALSE 0
 #endif
 
-# define TOKEN_FILENAME   "private_enclave.token"
-# define ENCLAVE_FILENAME "private_enclave.signed.so"
+# define PRIVATE_TOKEN_FILENAME   "private_enclave.token"
+# define PRIVATE_ENCLAVE_FILENAME "private_enclave.signed.so"
+# define PUBLIC_TOKEN_FILENAME   "public_enclave.token"
+# define PUBLIC_ENCLAVE_FILENAME "public_enclave.signed.so"
 
-extern sgx_enclave_id_t global_eid;    /* global enclave id */
+extern sgx_enclave_id_t global_private_eid;    /* global enclave id */
+extern sgx_enclave_id_t global_public_eid;    /* global enclave id */
 
 #if defined(__cplusplus)
 extern "C" {

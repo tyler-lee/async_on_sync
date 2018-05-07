@@ -43,7 +43,8 @@
 #include "PrivateEnclave_u.h"
 
 /* Global EID shared by multiple threads */
-sgx_enclave_id_t global_eid = 0;
+sgx_enclave_id_t global_private_eid = 0;
+sgx_enclave_id_t global_public_eid = 0;
 
 typedef struct _sgx_errlist_t {
     sgx_status_t err;
@@ -154,7 +155,7 @@ void print_error_message(sgx_status_t ret)
  *   Step 2: call sgx_create_enclave to initialize an enclave instance
  *   Step 3: save the launch token if it is updated
  */
-int initialize_enclave(void)
+int initialize_enclave(const char* token_filename, const char* enclave_filename, sgx_enclave_id_t* eid)
 {
     char token_path[MAX_PATH] = {'\0'};
     sgx_launch_token_t token = {0};
@@ -168,14 +169,14 @@ int initialize_enclave(void)
     const char *home_dir = getpwuid(getuid())->pw_dir;
 
     if (home_dir != NULL &&
-        (strlen(home_dir)+strlen("/")+sizeof(TOKEN_FILENAME)+1) <= MAX_PATH) {
+        (strlen(home_dir)+strlen("/")+strlen(token_filename)+1) <= MAX_PATH) {
         /* compose the token path */
         strncpy(token_path, home_dir, strlen(home_dir));
         strncat(token_path, "/", strlen("/"));
-        strncat(token_path, TOKEN_FILENAME, sizeof(TOKEN_FILENAME)+1);
+        strncat(token_path, token_filename, strlen(token_filename)+1);
     } else {
         /* if token path is too long or $HOME is NULL */
-        strncpy(token_path, TOKEN_FILENAME, sizeof(TOKEN_FILENAME));
+        strncpy(token_path, token_filename, strlen(token_filename));
     }
 
     FILE *fp = fopen(token_path, "rb");
@@ -194,7 +195,7 @@ int initialize_enclave(void)
     }
     /* Step 2: call sgx_create_enclave to initialize an enclave instance */
     /* Debug Support: set 2nd parameter to 1 */
-    ret = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, &token, &updated, &global_eid, NULL);
+    ret = sgx_create_enclave(enclave_filename, SGX_DEBUG_FLAG, &token, &updated, eid, NULL);
     if (ret != SGX_SUCCESS) {
         print_error_message(ret);
         if (fp != NULL) fclose(fp);
@@ -236,7 +237,12 @@ int SGX_CDECL main(int argc, char *argv[])
 
 
     /* Initialize the enclave */
-    if(initialize_enclave() < 0){
+    if(initialize_enclave(PRIVATE_TOKEN_FILENAME, PRIVATE_ENCLAVE_FILENAME, &global_private_eid) < 0){
+        printf("Enter a character before exit ...\n");
+        getchar();
+        return -1;
+    }
+    if(initialize_enclave(PUBLIC_TOKEN_FILENAME, PUBLIC_ENCLAVE_FILENAME, &global_public_eid) < 0){
         printf("Enter a character before exit ...\n");
         getchar();
         return -1;
@@ -245,7 +251,8 @@ int SGX_CDECL main(int argc, char *argv[])
 	lhr_measurement();
 
     /* Destroy the enclave */
-    sgx_destroy_enclave(global_eid);
+    sgx_destroy_enclave(global_private_eid);
+    sgx_destroy_enclave(global_public_eid);
 
     //printf("Enter a character before exit ...\n");
     //getchar();

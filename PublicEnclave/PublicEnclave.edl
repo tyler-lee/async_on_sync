@@ -19,5 +19,6 @@ enclave {
 
 	trusted {
 		public void aos_encrypt();
+		public void aos_verify();
 	};
 };

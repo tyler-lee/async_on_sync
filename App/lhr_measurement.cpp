@@ -12,6 +12,7 @@ using namespace std;
 
 #include "App.h"
 #include "PrivateEnclave_u.h"
+#include "PublicEnclave_u.h"
 
 #include "../Include/user_types.h"
 
@@ -47,8 +48,14 @@ void lhr_measurement() {
 #endif
 
 	sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-	ret = aos_setkey(global_eid);
+
+	ret = aos_setkey(global_private_eid);
 	if (ret != SGX_SUCCESS) abort();
 
+	ret = aos_verify(global_public_eid);
+	if (ret != SGX_SUCCESS) abort();
+
+	ret = aos_encrypt(global_public_eid);
+	if (ret != SGX_SUCCESS) abort();
 
 }

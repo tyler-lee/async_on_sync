@@ -1,6 +1,7 @@
 # This project specified
 *.run
 sgxsdk/
+sgxssl/
 app
 app_*
 async_on_sync

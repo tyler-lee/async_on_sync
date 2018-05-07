@@ -82,7 +82,7 @@ else
 endif
 
 App_Cpp_Files := $(wildcard App/*.cpp)
-App_Include_Paths := -IInclude -IApp -I$(SGX_SDK)/include
+App_Include_Paths := -ICommon -IApp -I$(SGX_SDK)/include
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
 
 # Three configuration modes - Debug, prerelease, release
@@ -122,7 +122,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 PrivateEnclave_Cpp_Files := $(wildcard PrivateEnclave/*.cpp)
-PrivateEnclave_Include_Paths := -IInclude -IPrivateEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
+PrivateEnclave_Include_Paths := -ICommon -IPrivateEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
 ifeq ($(CC_BELOW_4_9), 1)
@@ -170,7 +170,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 PublicEnclave_Cpp_Files := $(wildcard PublicEnclave/*.cpp)
-PublicEnclave_Include_Paths := -IInclude -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
+PublicEnclave_Include_Paths := -ICommon -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
 ifeq ($(CC_BELOW_4_9), 1)

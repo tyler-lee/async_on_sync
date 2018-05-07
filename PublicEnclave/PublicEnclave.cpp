@@ -49,7 +49,7 @@ void AES_ctr128_encrypt(const unsigned char *in, unsigned char *out,
                         unsigned char ecount_buf[AES_BLOCK_SIZE],
                         unsigned int *num);
 */
-void aos_encrypt() {
+void aos_encrypt(aos_key_t pkey) {
     AES_KEY aes;
     unsigned char key[AES_BLOCK_SIZE];        // AES_BLOCK_SIZE = 16
     unsigned char iv[AES_BLOCK_SIZE];        // init vector

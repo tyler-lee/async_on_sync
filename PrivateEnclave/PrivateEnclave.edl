@@ -1,6 +1,7 @@
 /* Enclave.edl - Top EDL file. */
 
 enclave {
+	include "user_types.h"
 
     /* Import ECALL/OCALL from sub-directory EDLs.
      *  [from]: specifies the location of EDL file.
@@ -18,6 +19,6 @@ enclave {
     };
 
 	trusted {
-		public void aos_setkey();
+		public void aos_setkey([out]aos_key_t* key);
 	};
 };

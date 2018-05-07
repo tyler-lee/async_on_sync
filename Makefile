@@ -148,6 +148,56 @@ PrivateEnclave_Name := private_enclave.so
 Signed_PrivateEnclave_Name := private_enclave.signed.so
 PrivateEnclave_Config_File := PrivateEnclave/PrivateEnclave.config.xml
 
+
+
+######## PublicEnclave Settings ########
+
+ifneq ($(SGX_MODE), HW)
+	Trts_Library_Name := sgx_trts_sim
+	Service_Library_Name := sgx_tservice_sim
+else
+	Trts_Library_Name := sgx_trts
+	Service_Library_Name := sgx_tservice
+endif
+Crypto_Library_Name := sgx_tcrypto
+
+PublicEnclave_Cpp_Files := $(wildcard PublicEnclave/*.cpp)
+PublicEnclave_Include_Paths := -IInclude -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+
+CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
+ifeq ($(CC_BELOW_4_9), 1)
+	PublicEnclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector
+else
+	PublicEnclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector-strong
+endif
+
+PublicEnclave_C_Flags += $(PublicEnclave_Include_Paths)
+PublicEnclave_Cpp_Flags := $(PublicEnclave_C_Flags) -std=c++11 -nostdinc++
+
+# To generate a proper enclave, it is recommended to follow below guideline to link the trusted libraries:
+#    1. Link sgx_trts with the `--whole-archive' and `--no-whole-archive' options,
+#       so that the whole content of trts is included in the enclave.
+#    2. For other libraries, you just need to pull the required symbols.
+#       Use `--start-group' and `--end-group' to link these libraries.
+# Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
+# Otherwise, you may get some undesirable errors.
+PublicEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
+	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
+	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
+	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
+	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
+	-Wl,--version-script=PublicEnclave/PublicEnclave.lds
+
+PublicEnclave_Cpp_Objects := $(PublicEnclave_Cpp_Files:.cpp=.o)
+
+PublicEnclave_Name := public_enclave.so
+Signed_PublicEnclave_Name := public_enclave.signed.so
+PublicEnclave_Config_File := PublicEnclave/PublicEnclave.config.xml
+
+###################
+
+
 ifeq ($(SGX_MODE), HW)
 ifeq ($(SGX_DEBUG), 1)
 	Build_Mode = HW_DEBUG
@@ -170,15 +220,16 @@ endif
 .PHONY: all run async_on_sync install_sgxsdk
 
 ifeq ($(Build_Mode), HW_RELEASE)
-all: .config_$(Build_Mode)_$(SGX_ARCH) $(App_Name) $(PrivateEnclave_Name)
+all: .config_$(Build_Mode)_$(SGX_ARCH) $(App_Name) $(PrivateEnclave_Name) $(PublicEnclave_Name)
 	@echo "The project has been built in release hardware mode."
-	@echo "Please sign the $(PrivateEnclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
+	@echo "Please sign the $(PrivateEnclave_Name) and $(PublicEnclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
 	@echo "To sign the enclave use the command:"
 	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(PrivateEnclave_Name) -out <$(Signed_PrivateEnclave_Name)> -config $(PrivateEnclave_Config_File)"
+	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(PublicEnclave_Name) -out <$(Signed_PublicEnclave_Name)> -config $(PublicEnclave_Config_File)"
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-all: .config_$(Build_Mode)_$(SGX_ARCH) $(App_Name) $(Signed_PrivateEnclave_Name)
+all: .config_$(Build_Mode)_$(SGX_ARCH) $(App_Name) $(Signed_PrivateEnclave_Name) $(Signed_PublicEnclave_Name)
 ifeq ($(Build_Mode), HW_DEBUG)
 	@echo "The project has been built in debug hardware mode."
 else ifeq ($(Build_Mode), SIM_DEBUG)
@@ -217,17 +268,27 @@ App/PrivateEnclave_u.o: App/PrivateEnclave_u.c
 	@$(CC) $(App_C_Flags) -c $< -o $@
 	@echo "CC   <=  $<"
 
+App/PublicEnclave_u.c: $(SGX_EDGER8R) PublicEnclave/PublicEnclave.edl
+	@cd App && $(SGX_EDGER8R) --untrusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include
+	@echo "GEN  =>  $@"
+
+App/PublicEnclave_u.o: App/PublicEnclave_u.c
+	@$(CC) $(App_C_Flags) -c $< -o $@
+	@echo "CC   <=  $<"
+
 App/%.o: App/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(App_Name): App/PrivateEnclave_u.o $(App_Cpp_Objects)
+$(App_Name): App/PrivateEnclave_u.o App/PublicEnclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
 .config_$(Build_Mode)_$(SGX_ARCH):
 	@rm -f .config_* $(App_Name) $(PrivateEnclave_Name) $(Signed_PrivateEnclave_Name) $(App_Cpp_Objects) App/PrivateEnclave_u.* $(PrivateEnclave_Cpp_Objects) PrivateEnclave/PrivateEnclave_t.*
+	@rm -f .config_* $(App_Name) $(PublicEnclave_Name) $(Signed_PublicEnclave_Name) $(App_Cpp_Objects) App/PublicEnclave_u.* $(PublicEnclave_Cpp_Objects) PublicEnclave/PublicEnclave_t.*
 	@touch .config_$(Build_Mode)_$(SGX_ARCH)
+
 
 ######## PrivateEnclave Objects ########
 
@@ -251,8 +312,34 @@ $(Signed_PrivateEnclave_Name): $(PrivateEnclave_Name)
 	@$(SGX_ENCLAVE_SIGNER) sign -key PrivateEnclave/PrivateEnclave_private.pem -enclave $(PrivateEnclave_Name) -out $@ -config $(PrivateEnclave_Config_File)
 	@echo "SIGN =>  $@"
 
+
+
+######## PublicEnclave Objects ########
+
+PublicEnclave/PublicEnclave_t.c: $(SGX_EDGER8R) PublicEnclave/PublicEnclave.edl
+	@cd PublicEnclave && $(SGX_EDGER8R) --trusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include
+	@echo "GEN  =>  $@"
+
+PublicEnclave/PublicEnclave_t.o: PublicEnclave/PublicEnclave_t.c
+	@$(CC) $(PublicEnclave_C_Flags) -c $< -o $@
+	@echo "CC   <=  $<"
+
+PublicEnclave/%.o: PublicEnclave/%.cpp
+	@$(CXX) $(PublicEnclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+$(PublicEnclave_Name): PublicEnclave/PublicEnclave_t.o $(PublicEnclave_Cpp_Objects)
+	@$(CXX) $^ -o $@ $(PublicEnclave_Link_Flags)
+	@echo "LINK =>  $@"
+
+$(Signed_PublicEnclave_Name): $(PublicEnclave_Name)
+	@$(SGX_ENCLAVE_SIGNER) sign -key PublicEnclave/PublicEnclave_private.pem -enclave $(PublicEnclave_Name) -out $@ -config $(PublicEnclave_Config_File)
+	@echo "SIGN =>  $@"
+
+
 .PHONY: clean
 
 clean:
 	@rm -f .config_* $(App_Name) $(PrivateEnclave_Name) $(Signed_PrivateEnclave_Name) $(App_Cpp_Objects) App/PrivateEnclave_u.* $(PrivateEnclave_Cpp_Objects) PrivateEnclave/PrivateEnclave_t.*
+	@rm -f .config_* $(App_Name) $(PublicEnclave_Name) $(Signed_PublicEnclave_Name) $(App_Cpp_Objects) App/PublicEnclave_u.* $(PublicEnclave_Cpp_Objects) PublicEnclave/PublicEnclave_t.*
 	@rm -f async_on_sync

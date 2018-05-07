@@ -66,6 +66,13 @@ else
         SGX_COMMON_CFLAGS += -O2
 endif
 
+OPENSSL_PACKAGE := ./sgxssl
+ifeq ($(SGX_DEBUG), 1)
+        OPENSSL_LIBRARY_PATH := $(OPENSSL_PACKAGE)/lib64/debug/
+else
+        OPENSSL_LIBRARY_PATH := $(OPENSSL_PACKAGE)/lib64/release/
+endif
+
 ######## App Settings ########
 
 ifneq ($(SGX_MODE), HW)
@@ -115,7 +122,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 PrivateEnclave_Cpp_Files := $(wildcard PrivateEnclave/*.cpp)
-PrivateEnclave_Include_Paths := -IInclude -IPrivateEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+PrivateEnclave_Include_Paths := -IInclude -IPrivateEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
 ifeq ($(CC_BELOW_4_9), 1)
@@ -140,7 +147,8 @@ PrivateEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
-	-Wl,--version-script=PrivateEnclave/PrivateEnclave.lds
+	-Wl,--version-script=PrivateEnclave/PrivateEnclave.lds \
+	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
 
 PrivateEnclave_Cpp_Objects := $(PrivateEnclave_Cpp_Files:.cpp=.o)
 
@@ -162,7 +170,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 PublicEnclave_Cpp_Files := $(wildcard PublicEnclave/*.cpp)
-PublicEnclave_Include_Paths := -IInclude -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+PublicEnclave_Include_Paths := -IInclude -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
 ifeq ($(CC_BELOW_4_9), 1)
@@ -187,7 +195,8 @@ PublicEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -n
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
-	-Wl,--version-script=PublicEnclave/PublicEnclave.lds
+	-Wl,--version-script=PublicEnclave/PublicEnclave.lds \
+	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
 
 PublicEnclave_Cpp_Objects := $(PublicEnclave_Cpp_Files:.cpp=.o)
 

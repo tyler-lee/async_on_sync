@@ -20,7 +20,7 @@ void printf(const char *fmt, ...)
     ocall_print_string(buf);
 }
 
-void aos_setkey() {
+void aos_setkey(aos_key_t* key) {
 	ocall_print_string("in enclave: aos_setkey\n");
 	return;
 }

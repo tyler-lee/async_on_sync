@@ -249,14 +249,15 @@ int SGX_CDECL main(int argc, char *argv[])
 
 
 	sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+	aos_key_t key;
 
-	ret = aos_setkey(global_private_eid);
+	ret = aos_setkey(global_private_eid, &key);
 	if (ret != SGX_SUCCESS) abort();
 
 	ret = aos_verify(global_public_eid);
 	if (ret != SGX_SUCCESS) abort();
 
-	ret = aos_encrypt(global_public_eid);
+	ret = aos_encrypt(global_public_eid, key);
 	if (ret != SGX_SUCCESS) abort();
 
 

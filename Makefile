@@ -98,7 +98,8 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags) -std=c++11
-App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread -L$(OPENSSL_LIBRARY_PATH) -lsgx_usgxssl
+# TODO: !!! sgx ssl library SHOULD be placed before regular sgx library
+App_Link_Flags := -L$(OPENSSL_LIBRARY_PATH) -lsgx_usgxssl $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread
 
 ifneq ($(SGX_MODE), HW)
 	App_Link_Flags += -lsgx_uae_service_sim
@@ -141,15 +142,15 @@ PrivateEnclave_Cpp_Flags := $(PrivateEnclave_C_Flags) -std=c++11 -nostdinc++
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
-PrivateEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+# TODO: !!! sgx ssl library SHOULD be placed before regular sgx library
+PrivateEnclave_Link_Flags := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto \
+	$(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
-	-Wl,--version-script=PrivateEnclave/PrivateEnclave.lds \
-	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
-	#-L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto
+	-Wl,--version-script=PrivateEnclave/PrivateEnclave.lds
 
 PrivateEnclave_Cpp_Objects := $(PrivateEnclave_Cpp_Files:.cpp=.o)
 
@@ -190,15 +191,15 @@ PublicEnclave_Cpp_Flags := $(PublicEnclave_C_Flags) -std=c++11 -nostdinc++
 #       Use `--start-group' and `--end-group' to link these libraries.
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
-PublicEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+# TODO: !!! sgx ssl library SHOULD be placed before regular sgx library
+PublicEnclave_Link_Flags := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto \
+	$(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
 	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
-	-Wl,--version-script=PublicEnclave/PublicEnclave.lds \
-	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
-	#-L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto
+	-Wl,--version-script=PublicEnclave/PublicEnclave.lds
 
 PublicEnclave_Cpp_Objects := $(PublicEnclave_Cpp_Files:.cpp=.o)
 

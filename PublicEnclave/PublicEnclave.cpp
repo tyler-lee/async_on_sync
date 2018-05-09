@@ -135,7 +135,6 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad,
 }
 
 void aos_verify() {
-	//TODO: it seems intel-sgx-ssl does NOT support EVP !!!
 	EVP_CIPHER_CTX *ctx;
 	if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
 	EVP_CIPHER_CTX_free(ctx);

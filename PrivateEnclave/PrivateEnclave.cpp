@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>      /* vsnprintf */
 #include <string.h>	//memcpy
+#include <openssl/evp.h>
 
 #include "PrivateEnclave.h"
 #include "PrivateEnclave_t.h"  /* print_string */
@@ -19,7 +20,18 @@ void printf(const char *fmt, ...)
     va_end(ap);
     ocall_print_string(buf);
 }
+
+void handleErrors(void)
+{
+  //ERR_print_errors_fp(stderr);
+  abort();
+}
+
 void aos_setkey(aos_key_t* key) {
+	EVP_CIPHER_CTX *ctx;
+	if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+	EVP_CIPHER_CTX_free(ctx);
+
 	ocall_print_string("in enclave: aos_setkey\n");
 	return;
 }

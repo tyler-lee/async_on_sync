@@ -16,6 +16,13 @@ How to Build/Execute the Sample Code
 	Note: make sure that $SGX_SDK is correct.
 
 	Copy sgxssl (from intel-sgx-ssl) to sgxssl directory, including 'include', 'lib64', 'docs'.
+
+	* Make sure that sgx ssl libraries are placed before regular sgx libraries in the linker lines. For example,
+			PublicEnclave_Link_Flags := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto \
+				$(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+
+	Otherwise, errors like 'undefined reference .....' incur.
+
 2. Build the project with the prepared Makefile:
     a. Hardware Mode, Debug build:
         $ make

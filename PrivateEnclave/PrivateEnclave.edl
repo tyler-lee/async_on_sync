@@ -8,6 +8,7 @@ enclave {
      *  [import]: specifies the functions to import,
      *  [*]: implies to import all functions.
      */
+	from "sgx_tsgxssl.edl" import *;
 
     /*
      * ocall_print_string - invokes OCALL to display string buffer inside the enclave.

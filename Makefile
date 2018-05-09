@@ -149,6 +149,7 @@ PrivateEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
 	-Wl,--version-script=PrivateEnclave/PrivateEnclave.lds \
 	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
+	#-L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto
 
 PrivateEnclave_Cpp_Objects := $(PrivateEnclave_Cpp_Files:.cpp=.o)
 
@@ -197,6 +198,7 @@ PublicEnclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -n
 	-Wl,--defsym,__ImageBase=0 -Wl,--gc-sections   \
 	-Wl,--version-script=PublicEnclave/PublicEnclave.lds \
 	-L$(OPENSSL_LIBRARY_PATH) -lsgx_tsgxssl -lsgx_tsgxssl_crypto
+	#-L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_tsgxssl -Wl,--no-whole-archive -lsgx_tsgxssl_crypto
 
 PublicEnclave_Cpp_Objects := $(PublicEnclave_Cpp_Files:.cpp=.o)
 
@@ -270,7 +272,7 @@ async_on_sync: async_on_sync.c
 ######## App Objects ########
 
 App/PrivateEnclave_u.c: $(SGX_EDGER8R) PrivateEnclave/PrivateEnclave.edl
-	@cd App && $(SGX_EDGER8R) --untrusted ../PrivateEnclave/PrivateEnclave.edl --search-path ../PrivateEnclave --search-path $(SGX_SDK)/include
+	@cd App && $(SGX_EDGER8R) --untrusted ../PrivateEnclave/PrivateEnclave.edl --search-path ../PrivateEnclave --search-path $(SGX_SDK)/include --search-path ../$(OPENSSL_PACKAGE)/include
 	@echo "GEN  =>  $@"
 
 App/PrivateEnclave_u.o: App/PrivateEnclave_u.c
@@ -278,7 +280,7 @@ App/PrivateEnclave_u.o: App/PrivateEnclave_u.c
 	@echo "CC   <=  $<"
 
 App/PublicEnclave_u.c: $(SGX_EDGER8R) PublicEnclave/PublicEnclave.edl
-	@cd App && $(SGX_EDGER8R) --untrusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include
+	@cd App && $(SGX_EDGER8R) --untrusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include --search-path ../$(OPENSSL_PACKAGE)/include
 	@echo "GEN  =>  $@"
 
 App/PublicEnclave_u.o: App/PublicEnclave_u.c
@@ -302,7 +304,7 @@ $(App_Name): App/PrivateEnclave_u.o App/PublicEnclave_u.o $(App_Cpp_Objects)
 ######## PrivateEnclave Objects ########
 
 PrivateEnclave/PrivateEnclave_t.c: $(SGX_EDGER8R) PrivateEnclave/PrivateEnclave.edl
-	@cd PrivateEnclave && $(SGX_EDGER8R) --trusted ../PrivateEnclave/PrivateEnclave.edl --search-path ../PrivateEnclave --search-path $(SGX_SDK)/include
+	@cd PrivateEnclave && $(SGX_EDGER8R) --trusted ../PrivateEnclave/PrivateEnclave.edl --search-path ../PrivateEnclave --search-path $(SGX_SDK)/include --search-path ../$(OPENSSL_PACKAGE)/include
 	@echo "GEN  =>  $@"
 
 PrivateEnclave/PrivateEnclave_t.o: PrivateEnclave/PrivateEnclave_t.c
@@ -326,7 +328,7 @@ $(Signed_PrivateEnclave_Name): $(PrivateEnclave_Name)
 ######## PublicEnclave Objects ########
 
 PublicEnclave/PublicEnclave_t.c: $(SGX_EDGER8R) PublicEnclave/PublicEnclave.edl
-	@cd PublicEnclave && $(SGX_EDGER8R) --trusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include
+	@cd PublicEnclave && $(SGX_EDGER8R) --trusted ../PublicEnclave/PublicEnclave.edl --search-path ../PublicEnclave --search-path $(SGX_SDK)/include --search-path ../$(OPENSSL_PACKAGE)/include
 	@echo "GEN  =>  $@"
 
 PublicEnclave/PublicEnclave_t.o: PublicEnclave/PublicEnclave_t.c

@@ -30,5 +30,17 @@ int decrypt_aes_256_cbc(unsigned char *ciphertext, int ciphertext_len, unsigned 
   unsigned char *iv, unsigned char *plaintext);
 
 //Return mac_len
-size_t cmac_aes_256_cbc(const void *msg, size_t msg_len, unsigned char *key, unsigned char *mac);
+size_t cmac_aes_256_cbc_sign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac);
+
+//Reture 1 -- valid mac; 0 -- invalid mac;
+int cmac_aes_256_cbc_verify(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len);
+
+//Return mac_len
+size_t hmac_sha256_sign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac);
+size_t hmac_sha256_sign_digestsign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac);
+
+//Reture 1 -- valid mac; 0 -- invalid mac;
+int hmac_sha256_verify(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len);
+int hmac_sha256_verify_digestsign(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len);
+
 #endif //! __CRYPTO_H__

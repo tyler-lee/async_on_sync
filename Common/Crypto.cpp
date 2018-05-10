@@ -1,5 +1,6 @@
 #include <openssl/evp.h>
 #include <openssl/cmac.h>
+#include <openssl/hmac.h>
 //#include <openssl/err.h>	//ERR_print_errors_fp
 #include "Crypto.h"
 
@@ -190,16 +191,84 @@ int decrypt_aes_256_cbc(unsigned char *ciphertext, int ciphertext_len, unsigned 
 }
 
 //Return mac_len
-size_t cmac_aes_256_cbc(const void *msg, size_t msg_len, unsigned char *key, unsigned char *mac)
+size_t cmac_aes_256_cbc_sign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac)
 {
 	size_t mac_len;
-	CMAC_CTX *ctx = CMAC_CTX_new();
+	CMAC_CTX *ctx;
+	if(!(ctx = CMAC_CTX_new())) handleErrors();
 
-	CMAC_Init(ctx, key, AOS_KEY_SIZE, EVP_aes_256_cbc(), NULL);
-	CMAC_Update(ctx, msg, msg_len);
-	CMAC_Final(ctx, mac, &mac_len);
+	if(1 != CMAC_Init(ctx, key, key_len, EVP_aes_256_cbc(), NULL)) handleErrors();
+	if(1 != CMAC_Update(ctx, msg, msg_len)) handleErrors();
+	if(1 != CMAC_Final(ctx, mac, &mac_len)) handleErrors();
 
 	CMAC_CTX_free(ctx);
 	return mac_len;
 }
 
+//Reture 1 -- valid mac; 0 -- invalid mac;
+int cmac_aes_256_cbc_verify(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len)
+{
+	unsigned char tmp_mac[EVP_MAX_MD_SIZE];
+	size_t tmp_mac_len = cmac_aes_256_cbc_sign(msg, msg_len, key, key_len, tmp_mac);
+	const size_t len = mac_len < tmp_mac_len ? mac_len : tmp_mac_len;
+	//CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
+	return !CRYPTO_memcmp(mac, tmp_mac, len);
+}
+
+//Return mac_len
+size_t hmac_sha256_sign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac)
+{
+	unsigned int mac_len;
+	HMAC_CTX *ctx;
+
+	if(!(ctx = HMAC_CTX_new())) handleErrors();
+	if(1 != HMAC_Init_ex(ctx, key, key_len, EVP_sha256(), NULL)) handleErrors();
+	if(1 != HMAC_Update(ctx, (const unsigned char*)msg, msg_len)) handleErrors();
+	if(1 != HMAC_Final(ctx, mac, &mac_len)) handleErrors();
+	HMAC_CTX_free(ctx);
+
+	return mac_len;
+}
+size_t hmac_sha256_sign_digestsign(const void *msg, size_t msg_len, unsigned char *key, size_t key_len, unsigned char *mac)
+{
+	size_t mac_len;
+	EVP_MD_CTX* ctx = NULL;
+	//const EVP_MD* md = NULL;
+	EVP_PKEY *pkey = NULL;
+
+	if(!(pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, key, key_len))) handleErrors();
+	//OpenSSL_add_all_digests();
+	//if(!(md = EVP_get_digestbyname("SHA256"))) handleErrors();
+	//if(1 != EVP_DigestInit_ex(ctx, md, NULL)) handleErrors();
+
+	if(!(ctx = EVP_MD_CTX_create())) handleErrors();
+
+	//if(1 != EVP_DigestSignInit(ctx, NULL, md, NULL, pkey)) handleErrors();
+	if(1 != EVP_DigestSignInit(ctx, NULL, EVP_sha256(), NULL, pkey)) handleErrors();
+	if(1 != EVP_DigestSignUpdate(ctx, msg, msg_len)) handleErrors();
+	if(1 != EVP_DigestSignFinal(ctx, mac, &mac_len)) handleErrors();
+
+	if(ctx) EVP_MD_CTX_destroy(ctx);
+	if(pkey) EVP_PKEY_free(pkey);
+
+	return mac_len;
+}
+
+//Reture 1 -- valid mac; 0 -- invalid mac;
+int hmac_sha256_verify(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len)
+{
+	unsigned char tmp_mac[EVP_MAX_MD_SIZE];
+	size_t tmp_mac_len = hmac_sha256_sign(msg, msg_len, key, key_len, tmp_mac);
+	const size_t len = mac_len < tmp_mac_len ? mac_len : tmp_mac_len;
+	//CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
+	return !CRYPTO_memcmp(mac, tmp_mac, len);
+}
+//Reture 1 -- valid mac; 0 -- invalid mac;
+int hmac_sha256_verify_digestsign(const unsigned char *mac, size_t mac_len, const void *msg, size_t msg_len, unsigned char *key, size_t key_len)
+{
+	unsigned char tmp_mac[EVP_MAX_MD_SIZE];
+	size_t tmp_mac_len = hmac_sha256_sign_digestsign(msg, msg_len, key, key_len, tmp_mac);
+	const size_t len = mac_len < tmp_mac_len ? mac_len : tmp_mac_len;
+	//CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
+	return !CRYPTO_memcmp(mac, tmp_mac, len);
+}

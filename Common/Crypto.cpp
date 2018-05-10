@@ -1,4 +1,5 @@
 #include <openssl/evp.h>
+#include <openssl/cmac.h>
 //#include <openssl/err.h>	//ERR_print_errors_fp
 #include "Crypto.h"
 
@@ -188,4 +189,17 @@ int decrypt_aes_256_cbc(unsigned char *ciphertext, int ciphertext_len, unsigned 
 	return plaintext_len;
 }
 
+//Return mac_len
+size_t cmac_aes_256_cbc(const void *msg, size_t msg_len, unsigned char *key, unsigned char *mac)
+{
+	size_t mac_len;
+	CMAC_CTX *ctx = CMAC_CTX_new();
+
+	CMAC_Init(ctx, key, AOS_KEY_SIZE, EVP_aes_256_cbc(), NULL);
+	CMAC_Update(ctx, msg, msg_len);
+	CMAC_Final(ctx, mac, &mac_len);
+
+	CMAC_CTX_free(ctx);
+	return mac_len;
+}
 

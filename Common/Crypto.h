@@ -29,4 +29,6 @@ int encrypt_aes_256_cbc(unsigned char *plaintext, int plaintext_len, unsigned ch
 int decrypt_aes_256_cbc(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
   unsigned char *iv, unsigned char *plaintext);
 
+//Return mac_len
+size_t cmac_aes_256_cbc(const void *msg, size_t msg_len, unsigned char *key, unsigned char *mac);
 #endif //! __CRYPTO_H__

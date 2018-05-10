@@ -325,6 +325,12 @@ $(Signed_PrivateEnclave_Name): $(PrivateEnclave_Name)
 	@echo "SIGN =>  $@"
 
 
+######## Common Objects ########
+
+Common/%.o: Common/%.cpp
+	@$(CXX) $(PrivateEnclave_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
 
 ######## PublicEnclave Objects ########
 

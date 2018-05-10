@@ -3,9 +3,11 @@
 
 #include <openssl/aes.h>
 
-#define AOS_TAG_SIZE AES_BLOCK_SIZE
-#define AOS_KEY_SIZE (AES_BLOCK_SIZE*2)
-#define AOS_BLOCK_SIZE AES_BLOCK_SIZE
+#define AOS_TAG_SIZE		AES_BLOCK_SIZE
+#define AOS_KEY_SIZE		(AES_BLOCK_SIZE*2)
+#define AOS_BLOCK_SIZE		AES_BLOCK_SIZE
+#define AOS_CMAC_SIZE		AOS_BLOCK_SIZE
+#define AOS_HMAC_SIZE		32	//For Sha256
 
 //https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption
 //Return ciphertext_len

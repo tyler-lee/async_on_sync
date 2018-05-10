@@ -122,7 +122,7 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-PrivateEnclave_Cpp_Files := $(wildcard PrivateEnclave/*.cpp)
+PrivateEnclave_Cpp_Files := $(wildcard PrivateEnclave/*.cpp) $(wildcard Common/*.cpp)
 PrivateEnclave_Include_Paths := -ICommon -IPrivateEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
@@ -171,7 +171,7 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-PublicEnclave_Cpp_Files := $(wildcard PublicEnclave/*.cpp)
+PublicEnclave_Cpp_Files := $(wildcard PublicEnclave/*.cpp) $(wildcard Common/*.cpp)
 PublicEnclave_Include_Paths := -ICommon -IPublicEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(OPENSSL_PACKAGE)/include
 
 CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")

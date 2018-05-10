@@ -2,12 +2,14 @@
 #define __CRYPTO_H__
 
 #include <openssl/aes.h>
+#include <openssl/evp.h>	//for EVP_MAX_MD_SIZE
 
 #define AOS_TAG_SIZE		AES_BLOCK_SIZE
 #define AOS_KEY_SIZE		(AES_BLOCK_SIZE*2)
 #define AOS_BLOCK_SIZE		AES_BLOCK_SIZE
 #define AOS_CMAC_SIZE		AOS_BLOCK_SIZE
 #define AOS_HMAC_SIZE		32	//For Sha256
+#define AOS_MAX_MAC_SIZE	EVP_MAX_MD_SIZE
 
 //https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption
 //Return ciphertext_len
